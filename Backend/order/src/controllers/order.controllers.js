@@ -3,21 +3,19 @@ const axios = require("axios");
 
 async function createOrder(req, res){
     
+    const user = req.user;
+    const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+
     try{
-        const user = req.user;
-        const Cookie = req.cookies?.token || req.headers.authorization?.split(" ")[1];
         const cart = await axios.get("http://localhost:3002/api/cart/", {
         headers: {
-            Cookie: `token=${Cookie}`
+            Authorization: `Bearer ${token}`
         }
     });
-        console.log(cart);
+    res.status(200).json({message: "Order created successfully"});
     }catch(err){
-        return res.status(500).json(
-            {
-                message: "Internal server error"
-            }
-        );
+        console.log("error: ", err.response.data);
+        return res.status(500).json({message: "Internal server error"});
     }
 }
 

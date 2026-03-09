@@ -128,7 +128,7 @@ async function logoutUser(req, res) {
     const token = req.cookies.token;
 
     if (token) {
-        await redis.set(`Blacklist: ${token}`, "true", "EX", 24 * 60 * 60 * 1000) // expires in 1 day
+        await redis.set(`Blacklist: ${token}`, "true", "EX", 24 * 60 * 60) // expires in 1 day
     }
 
     res.clearCookie("token", {

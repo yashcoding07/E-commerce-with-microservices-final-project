@@ -7,6 +7,7 @@ const { createProduct, getAllProducts, getProductByID, updateProduct, deleteProd
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+// POST /api/products/
 router.post("/",
     createAuthMiddleware(["admin", "seller"]),
     upload.array("images", 5),
