@@ -4,12 +4,8 @@ const addressSchema = new mongoose.Schema({
     street: String,
     city: String,
     state: String,
-    zip: String,
+    pincode: String,
     country: String,
-    isDefault: {
-        type: Boolean,
-        default: false
-    }
 });
 
 const orderSchema = new mongoose.Schema({
@@ -46,7 +42,10 @@ const orderSchema = new mongoose.Schema({
                 required: true,
                 enum: ["pending", "shipped", "delivered", "cancelled", "confirmed"],
             },
-        shippingAddress: addressSchema
+        shippingAddress: {
+            type: addressSchema,
+            required: true
+        }
 }, { timestamps: true });
 
 const orderModel = mongoose.model("Order", orderSchema);

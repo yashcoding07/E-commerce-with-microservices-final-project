@@ -131,13 +131,18 @@ async function getCart(req, res) {
         const products = await getProductsByIds(productIds);
 
         const cartItems = cart.items.map((item) => {
-            const product = products.find((product) => product._id.toString() === item.product.toString());
+            const product = products.find((product) => product && product._id && product._id.toString() === item.product.toString());
+            
+            if (!product) {
+                return null;
+            }
+
             return {
                 product: item.product,
                 quantity: item.quantity,
                 priceAtAddition: product.price.amount
             }
-        });
+        }).filter(item => item !== null);
 
         const totalAmount = cartItems.reduce((sum, item) => sum + item.quantity * item.priceAtAddition, 0);
 
