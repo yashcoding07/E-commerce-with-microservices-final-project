@@ -67,6 +67,38 @@ async function createOrder(req, res) {
     }
 }
 
+async function getMyOrders(req, res) {
+    try {
+        const userId = req.user._id || req.user.id;
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const orders = await orderModel.find({ user: userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalOrders = await orderModel.countDocuments({ user: userId });
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        res.status(200).json({
+            orders,
+            page,
+            limit,
+            totalPages,
+            totalOrders
+        });
+
+    } catch(err){
+        console.log("error: ", err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 module.exports = {
-    createOrder
+    createOrder,
+    getMyOrders,
+    getOrderById
 };
