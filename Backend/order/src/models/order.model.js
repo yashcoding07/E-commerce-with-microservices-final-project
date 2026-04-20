@@ -42,6 +42,17 @@ const orderSchema = new mongoose.Schema({
                 required: true,
                 enum: ["pending", "shipped", "delivered", "cancelled", "confirmed"],
             },
+        totalPrice: {
+            amount: {
+                type: Number,
+                required: true
+            },
+            currency: {
+                type: String,
+                required: true,
+                enum: ["INR", "USD"]
+            }
+        },
         shippingAddress: {
             type: addressSchema,
             required: true

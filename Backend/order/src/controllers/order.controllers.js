@@ -1,5 +1,6 @@
 const orderModel = require("../models/order.model");
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 async function createOrder(req, res) {
 
@@ -90,6 +91,42 @@ async function getMyOrders(req, res) {
             totalPages,
             totalOrders
         });
+
+    } catch(err){
+        console.log("error: ", err);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+async function getOrderById(req, res) {
+    const user = req.user;
+    const orderId = req.params.id;
+
+    try{
+        if(!mongoose.Types.ObjectId.isValid(orderId)){
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const order = await orderModel.findById(orderId);
+
+        if(!order){
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if(order.user.toString() !== user.id){
+            return res.status(403).json({ message: "Forbidden: you do not have access to this order." });
+        }
+
+        res.status(200).json({ order: {
+            _id: order._id,
+            user: order.user,
+            items: order.items,
+            totalPrice: order.totalPrice,
+            status: order.status,
+            shippingAddress: order.shippingAddress,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt
+        } });
 
     } catch(err){
         console.log("error: ", err);
