@@ -134,8 +134,114 @@ async function getOrderById(req, res) {
     }
 }
 
+async function cancelOrderById(req, res) {
+    const user = req.user;
+    const orderId = req.params.id;
+
+    try{
+        if(!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ message: "Invalid order ID" });
+        }
+
+        const order = await orderModel.findById(orderId);
+
+        if(!order) {
+            return res.status(404).json( { message: "Order not found" });
+        }
+
+        if(order.user.toString() !== user.id) {
+            return res.status(403).json({ message: "Forbidden: you do not have access to this order." });
+        }
+       
+        if(order.status === "pending") {
+            order.status = "cancelled";
+            await order.save();
+            return res.status(200).json({ message: "Order cancelled successfully", order });
+        }
+
+        if(order.status === "confirmed") {
+            order.status = "cancelled";
+            await order.save();
+            return res.status(200).json({ message: "Order cancelled successfully", order });
+        }
+
+        if(order.status === "shipped") {
+            return res.status(400).json({ message: "Cannot cancel an order that has been shipped" });
+        }
+
+        if(order.status === "delivered") {
+            return res.status(400).json({ message: "Cannot cancel an order that has been delivered" });
+        }
+
+        if(order.status === "cancelled"){
+            return res.status(400).json({ message: "Order is already cancelled" });
+        }
+    }catch(err){
+        console.log("error: ", err);
+        res.status(500).json({"Message": "Internal server error"});
+    }
+};
+
+async function updateShippingAddress(req, res) {
+    const user = req.user;
+    const orderId = req.params.id;
+
+    try{
+
+        if(!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ message: "Invalid order ID"});
+        }
+
+        const order = await orderModel.findById(orderId);
+
+        if(!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        if(!order.shippingAddress) {
+            return res.status(400).json({ message: "Order does not have a shipping address to update" });
+        }
+
+        if(!req.body.shippingAddress) {
+            return res.status(400).json({ message: "Shipping address is required" });
+        }
+
+        if(order.user.toString() !== user.id) {
+            return res.status(403).json({ message: "Forbidden: you do not have access to this order." });
+        }
+
+        if(order.status === "pending") {
+            order.shippingAddress = req.body.shippingAddress;
+            await order.save();
+            return res.status(200).json({ message: "Shipping address updated successfully", order });
+        }
+
+        if(order.status === "confirmed") {
+            return res.status(400).json({ message: "Cannot update address for an order that has been confirmed (paid)" });
+        }
+
+        if(order.status === "shipped") {
+            return res.status(400).json({ message: "Cannot update address for an order that has been shipped" });
+        }
+
+        if(order.status === "delivered") {
+            return res.status(400).json({ message: "Cannot update address for an order that has been delivered" });
+        }
+
+        if(order.status === "cancelled") {
+            return res.status(400).json({ message: "Cannot update address for an order that has been cancelled" });
+        }
+    }catch(err){
+        console.log("error: ", err);
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+
 module.exports = {
     createOrder,
     getMyOrders,
-    getOrderById
+    getOrderById,
+    cancelOrderById,
+    updateShippingAddress
 };
